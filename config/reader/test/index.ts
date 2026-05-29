@@ -2836,6 +2836,31 @@ describe('resolutions in root package.json', () => {
     expect(config.overrides).toStrictEqual({ baz: '3.0.0', bar: '2.5.0' })
   })
 
+  test('warns instead of erroring when ignore-resolutions-conflict is set in pnpm-workspace.yaml', async () => {
+    prepareEmpty()
+
+    fs.writeFileSync('package.json', JSON.stringify({
+      name: 'test-pkg',
+      resolutions: { foo: '1.0.0', bar: '2.0.0' },
+    }))
+
+    writeYamlFileSync('pnpm-workspace.yaml', {
+      overrides: { baz: '3.0.0', bar: '2.5.0' },
+      ignoreResolutionsConflict: true,
+    })
+
+    const { warnings, config } = await getConfig({
+      cliOptions: {},
+      packageManager: { name: 'pnpm', version: '1.0.0' },
+      workspaceDir: process.cwd(),
+    })
+
+    expect(warnings).toContain(
+      'The "resolutions" field in package.json is ignored because "overrides" in pnpm-workspace.yaml takes precedence. Remove "resolutions" from package.json.'
+    )
+    expect(config.overrides).toStrictEqual({ baz: '3.0.0', bar: '2.5.0' })
+  })
+
   test('does not warn when neither resolutions nor overrides exist', async () => {
     prepareEmpty()
 

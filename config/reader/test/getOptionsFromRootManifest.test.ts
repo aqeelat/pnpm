@@ -175,3 +175,49 @@ test('getOptionsFromPnpmSettings() produces no overrides when resolutions is emp
   } as any) // eslint-disable-line
   expect(options.overrides).toBeUndefined()
 })
+
+test('getOptionsFromPnpmSettings() sets resolutionsStatus.ignoredResolutions when overrides exist', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {
+    overrides: { bar: '2.5.0' },
+  }, {
+    resolutions: { foo: '1.0.0' },
+  } as any) // eslint-disable-line
+  expect(options.resolutionsStatus).toStrictEqual({
+    ignoredResolutions: true,
+    usedResolutions: false,
+  })
+})
+
+test('getOptionsFromPnpmSettings() sets resolutionsStatus.usedResolutions when no overrides', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {}, {
+    resolutions: { foo: '1.0.0' },
+  } as any) // eslint-disable-line
+  expect(options.resolutionsStatus).toStrictEqual({
+    ignoredResolutions: false,
+    usedResolutions: true,
+  })
+})
+
+test('getOptionsFromPnpmSettings() does not set resolutionsStatus when no resolutions', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {
+    overrides: { bar: '2.5.0' },
+  })
+  expect(options.resolutionsStatus).toBeUndefined()
+})
+
+test('getOptionsFromPnpmSettings() does not set resolutionsStatus when resolutions is empty', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {}, {
+    resolutions: {},
+  } as any) // eslint-disable-line
+  expect(options.resolutionsStatus).toBeUndefined()
+})
+
+test('getOptionsFromPnpmSettings() resolves $version references in resolutions from manifest deps', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {}, {
+    dependencies: { foo: '1.2.3' },
+    resolutions: { bar: '$foo' },
+  } as any) // eslint-disable-line
+  expect(options.overrides).toStrictEqual({
+    bar: '1.2.3',
+  })
+})

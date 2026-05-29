@@ -33,6 +33,7 @@ export function rcOptionsTypes (): Record<string, unknown> {
     'hoisting-limits',
     'https-proxy',
     'ignore-pnpmfile',
+    'ignore-resolutions-conflict',
     'ignore-scripts',
     'optimistic-repeat-install',
     'os',

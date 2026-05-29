@@ -875,7 +875,7 @@ function addSettingsFromWorkspaceManifestToConfig (pnpmConfig: Config & ConfigCo
   const newSettings = Object.assign(getOptionsFromPnpmSettings(workspaceDir, workspaceManifest, projectManifest), configFromCliOpts)
   if (newSettings.resolutionsStatus != null) {
     if (newSettings.resolutionsStatus.ignoredResolutions) {
-      if (configFromCliOpts.ignoreResolutionsConflict) {
+      if (newSettings.ignoreResolutionsConflict) {
         warnings.push('The "resolutions" field in package.json is ignored because "overrides" in pnpm-workspace.yaml takes precedence. Remove "resolutions" from package.json.')
       } else {
         throw new PnpmError('RESOLUTIONS_CONFLICT_WITH_OVERRIDES', 'The "resolutions" field in package.json conflicts with "overrides" in pnpm-workspace.yaml. Remove "resolutions" from package.json. To suppress this error, use the --ignore-resolutions-conflict flag.')
