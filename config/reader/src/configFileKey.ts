@@ -105,7 +105,6 @@ export const excludedPnpmKeys = [
   'hoisting-limits',
   'ignore-compatibility-db',
   'ignore-pnpmfile',
-  'ignore-resolutions-conflict',
   'ignore-workspace',
   'ignore-workspace-cycles',
   'ignore-workspace-root-check',
