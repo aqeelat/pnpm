@@ -65,12 +65,13 @@ export function getOptionsFromPnpmSettings (manifestDir: string | undefined, pnp
 }
 
 function assertValidOverrides (overrides: unknown, fieldName: 'overrides' | 'resolutions' = 'overrides'): asserts overrides is Record<string, string> {
+  const errorCode = fieldName === 'resolutions' ? 'INVALID_RESOLUTIONS' : 'INVALID_OVERRIDES'
   if (overrides == null || typeof overrides !== 'object' || Array.isArray(overrides)) {
-    throw new PnpmError('INVALID_OVERRIDES', `The ${fieldName} field should be an object, but got ${renderReceivedType(overrides)}`)
+    throw new PnpmError(errorCode, `The ${fieldName} field should be an object, but got ${renderReceivedType(overrides)}`)
   }
   for (const [selector, spec] of Object.entries(overrides)) {
     if (typeof spec !== 'string') {
-      throw new PnpmError('INVALID_OVERRIDES', `The value of ${fieldName}.${selector} should be a string, but got ${renderReceivedType(spec)}`)
+      throw new PnpmError(errorCode, `The value of ${fieldName}.${selector} should be a string, but got ${renderReceivedType(spec)}`)
     }
   }
 }

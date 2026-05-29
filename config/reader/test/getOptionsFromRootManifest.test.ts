@@ -90,7 +90,7 @@ test('getOptionsFromPnpmSettings() rejects non-object resolutions values', () =>
   expect(() => getOptionsFromPnpmSettings(process.cwd(), {}, {
     resolutions: [] as unknown as Record<string, string>,
   } as any)).toThrow(expect.objectContaining({ // eslint-disable-line
-    code: 'ERR_PNPM_INVALID_OVERRIDES',
+    code: 'ERR_PNPM_INVALID_RESOLUTIONS',
     message: 'The resolutions field should be an object, but got array',
   }))
 })
@@ -210,6 +210,54 @@ test('getOptionsFromPnpmSettings() does not set resolutionsStatus when resolutio
     resolutions: {},
   } as any) // eslint-disable-line
   expect(options.resolutionsStatus).toBeUndefined()
+})
+
+test('getOptionsFromPnpmSettings() rejects non-string resolutions values', () => {
+  expect(() => getOptionsFromPnpmSettings(process.cwd(), {}, {
+    resolutions: {
+      foo: null,
+    } as unknown as Record<string, string>,
+  } as any)).toThrow(expect.objectContaining({ // eslint-disable-line
+    code: 'ERR_PNPM_INVALID_RESOLUTIONS',
+    message: 'The value of resolutions.foo should be a string, but got null',
+  }))
+})
+
+test('getOptionsFromPnpmSettings() rejects array resolutions values', () => {
+  expect(() => getOptionsFromPnpmSettings(process.cwd(), {}, {
+    resolutions: {
+      foo: [],
+    } as unknown as Record<string, string>,
+  } as any)).toThrow(expect.objectContaining({ // eslint-disable-line
+    code: 'ERR_PNPM_INVALID_RESOLUTIONS',
+    message: 'The value of resolutions.foo should be a string, but got array',
+  }))
+})
+
+test('getOptionsFromPnpmSettings() rejects string resolutions field', () => {
+  expect(() => getOptionsFromPnpmSettings(process.cwd(), {}, {
+    resolutions: 'bad',
+  } as any)).toThrow(expect.objectContaining({ // eslint-disable-line
+    code: 'ERR_PNPM_INVALID_RESOLUTIONS',
+    message: 'The resolutions field should be an object, but got string',
+  }))
+})
+
+test('getOptionsFromPnpmSettings() ignores null resolutions field', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {}, {
+    resolutions: null,
+  } as any) // eslint-disable-line
+  expect(options.overrides).toBeUndefined()
+  expect(options.resolutionsStatus).toBeUndefined()
+})
+
+test('getOptionsFromPnpmSettings() throws on unresolvable $version reference in resolutions', () => {
+  expect(() => getOptionsFromPnpmSettings(process.cwd(), {}, {
+    resolutions: { bar: '$nonexistent' },
+  } as any)).toThrow(expect.objectContaining({ // eslint-disable-line
+    code: 'ERR_PNPM_CANNOT_RESOLVE_OVERRIDE_VERSION',
+    message: 'Cannot resolve version $nonexistent in overrides. The direct dependencies don\'t have dependency "nonexistent".',
+  }))
 })
 
 test('getOptionsFromPnpmSettings() resolves $version references in resolutions from manifest deps', () => {
