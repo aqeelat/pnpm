@@ -27,18 +27,21 @@ export type OptionsFromRootManifest = {
 
 export function getOptionsFromPnpmSettings (manifestDir: string | undefined, pnpmSettings: PnpmSettings, manifest?: ProjectManifest): OptionsFromRootManifest {
   const settings: OptionsFromRootManifest = replaceEnvInSettings(pnpmSettings)
-  if (settings.overrides || manifest?.resolutions) {
-    if (settings.overrides) assertValidOverrides(settings.overrides)
-    if (manifest?.resolutions) assertValidOverrides(manifest.resolutions, 'resolutions')
-    settings.overrides = {
-      ...(manifest?.resolutions ? replaceEnvInStringValues(manifest.resolutions) as Record<string, string> : undefined),
-      ...settings.overrides,
+  if (settings.overrides != null) assertValidOverrides(settings.overrides)
+  if (manifest?.resolutions != null) assertValidOverrides(manifest.resolutions, 'resolutions')
+  const hasOverrides = settings.overrides != null && Object.keys(settings.overrides).length > 0
+  const hasResolutions = manifest?.resolutions != null && Object.keys(manifest.resolutions).length > 0
+  if (hasOverrides || hasResolutions) {
+    if (hasResolutions && !hasOverrides) {
+      settings.overrides = replaceEnvInStringValues(manifest.resolutions) as Record<string, string>
     }
-    if (Object.keys(settings.overrides).length === 0) {
+    if (Object.keys(settings.overrides ?? {}).length === 0) {
       delete settings.overrides
     } else if (manifest) {
-      settings.overrides = mapValues(createVersionReferencesReplacer(manifest), settings.overrides)
+      settings.overrides = mapValues(createVersionReferencesReplacer(manifest), settings.overrides!)
     }
+  } else if (settings.overrides != null && Object.keys(settings.overrides).length === 0) {
+    delete settings.overrides
   }
   if (pnpmSettings.patchedDependencies) {
     settings.patchedDependencies = { ...pnpmSettings.patchedDependencies }

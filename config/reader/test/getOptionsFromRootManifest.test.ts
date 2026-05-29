@@ -107,7 +107,7 @@ test('getOptionsFromPnpmSettings() replaces env variables in resolutions values'
   })
 })
 
-test('getOptionsFromPnpmSettings() merges manifest resolutions with workspace overrides', () => {
+test('getOptionsFromPnpmSettings() ignores manifest resolutions when workspace overrides exist', () => {
   const options = getOptionsFromPnpmSettings(process.cwd(), {
     overrides: {
       baz: '3.0.0',
@@ -120,7 +120,6 @@ test('getOptionsFromPnpmSettings() merges manifest resolutions with workspace ov
     },
   } as any) // eslint-disable-line
   expect(options.overrides).toStrictEqual({
-    foo: '1.0.0',
     bar: '2.5.0',
     baz: '3.0.0',
   })
@@ -146,4 +145,33 @@ test('getOptionsFromPnpmSettings() uses workspace overrides when no manifest res
   expect(options.overrides).toStrictEqual({
     bar: '2.5.0',
   })
+})
+
+test('getOptionsFromPnpmSettings() uses manifest resolutions when workspace overrides is empty', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {
+    overrides: {},
+  }, {
+    resolutions: {
+      foo: '1.0.0',
+    },
+  } as any) // eslint-disable-line
+  expect(options.overrides).toStrictEqual({
+    foo: '1.0.0',
+  })
+})
+
+test('getOptionsFromPnpmSettings() produces no overrides when both are empty', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {
+    overrides: {},
+  }, {
+    resolutions: {},
+  } as any) // eslint-disable-line
+  expect(options.overrides).toBeUndefined()
+})
+
+test('getOptionsFromPnpmSettings() produces no overrides when resolutions is empty', () => {
+  const options = getOptionsFromPnpmSettings(process.cwd(), {}, {
+    resolutions: {},
+  } as any) // eslint-disable-line
+  expect(options.overrides).toBeUndefined()
 })

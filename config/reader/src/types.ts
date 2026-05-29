@@ -51,6 +51,7 @@ export const pnpmTypes = {
   'hoisting-limits': ['none', 'workspaces', 'dependencies'],
   'ignore-compatibility-db': Boolean,
   'ignore-pnpmfile': Boolean,
+  'ignore-resolutions-conflict': Boolean,
   'ignore-workspace': Boolean,
   'ignore-workspace-cycles': Boolean,
   'ignore-workspace-root-check': Boolean,

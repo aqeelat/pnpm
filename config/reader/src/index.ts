@@ -311,6 +311,7 @@ export async function getConfig (opts: {
     addSettingsFromWorkspaceManifestToConfig(pnpmConfig, {
       configFromCliOpts,
       projectManifest: undefined,
+      warnings,
       workspaceDir: undefined,
       workspaceManifest: globalYamlConfig,
     })
@@ -424,6 +425,7 @@ export async function getConfig (opts: {
         addSettingsFromWorkspaceManifestToConfig(pnpmConfig, {
           configFromCliOpts,
           projectManifest: pnpmConfig.rootProjectManifest,
+          warnings,
           workspaceDir: pnpmConfig.workspaceDir,
           workspaceManifest,
         })
@@ -435,6 +437,7 @@ export async function getConfig (opts: {
         addSettingsFromWorkspaceManifestToConfig(pnpmConfig, {
           configFromCliOpts,
           projectManifest: pnpmConfig.rootProjectManifest,
+          warnings,
           workspaceDir: pnpmConfig.globalPkgDir,
           workspaceManifest,
         })
@@ -859,14 +862,29 @@ function getNodeVersionFromEnginesRuntime (manifest: ProjectManifest): string | 
 function addSettingsFromWorkspaceManifestToConfig (pnpmConfig: Config & ConfigContext, {
   configFromCliOpts,
   projectManifest,
-  workspaceManifest,
+  warnings,
   workspaceDir,
+  workspaceManifest,
 }: {
   configFromCliOpts: Record<string, unknown>
   projectManifest: ProjectManifest | undefined
+  warnings: string[]
   workspaceDir: string | undefined
   workspaceManifest: WorkspaceManifest
 }): void {
+  const hasResolutions = projectManifest?.resolutions != null && Object.keys(projectManifest.resolutions).length > 0
+  const hasOverrides = workspaceManifest.overrides != null && Object.keys(workspaceManifest.overrides).length > 0
+  if (hasResolutions) {
+    if (hasOverrides) {
+      if (configFromCliOpts.ignoreResolutionsConflict) {
+        warnings.push('The "resolutions" field in package.json is ignored because "overrides" in pnpm-workspace.yaml takes precedence. Remove "resolutions" from package.json.')
+      } else {
+        throw new PnpmError('RESOLUTIONS_CONFLICT_WITH_OVERRIDES', 'The "resolutions" field in package.json conflicts with "overrides" in pnpm-workspace.yaml. Remove "resolutions" from package.json. To suppress this error, use the --ignore-resolutions-conflict flag.')
+      }
+    } else {
+      warnings.push('The "resolutions" field in package.json is deprecated. Use the "overrides" field in pnpm-workspace.yaml instead.')
+    }
+  }
   const newSettings = Object.assign(getOptionsFromPnpmSettings(workspaceDir, workspaceManifest, projectManifest), configFromCliOpts)
   for (const [key, value] of Object.entries(newSettings)) {
     if (!isCamelCase(key)) continue
