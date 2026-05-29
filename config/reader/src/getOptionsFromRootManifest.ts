@@ -12,6 +12,11 @@ import type {
 } from '@pnpm/types'
 import { map as mapValues } from 'ramda'
 
+export type ResolutionsStatus = {
+  ignoredResolutions: boolean
+  usedResolutions: boolean
+}
+
 export type OptionsFromRootManifest = {
   allowedDeprecatedVersions?: AllowedDeprecatedVersions
   allowUnusedPatches?: boolean
@@ -23,6 +28,7 @@ export type OptionsFromRootManifest = {
   supportedArchitectures?: SupportedArchitectures
   allowBuilds?: Record<string, boolean | string>
   requiredScripts?: string[]
+  resolutionsStatus?: ResolutionsStatus
 } & Pick<PnpmSettings, 'configDependencies' | 'auditConfig' | 'agent' | 'updateConfig'>
 
 export function getOptionsFromPnpmSettings (manifestDir: string | undefined, pnpmSettings: PnpmSettings, manifest?: ProjectManifest): OptionsFromRootManifest {
@@ -31,17 +37,21 @@ export function getOptionsFromPnpmSettings (manifestDir: string | undefined, pnp
   if (manifest?.resolutions != null) assertValidOverrides(manifest.resolutions, 'resolutions')
   const hasOverrides = settings.overrides != null && Object.keys(settings.overrides).length > 0
   const hasResolutions = manifest?.resolutions != null && Object.keys(manifest.resolutions).length > 0
-  if (hasOverrides || hasResolutions) {
-    if (hasResolutions && !hasOverrides) {
-      settings.overrides = replaceEnvInStringValues(manifest.resolutions) as Record<string, string>
-    }
-    if (Object.keys(settings.overrides ?? {}).length === 0) {
+  if (hasResolutions && !hasOverrides) {
+    settings.overrides = replaceEnvInStringValues(manifest.resolutions) as Record<string, string>
+  }
+  if (settings.overrides != null) {
+    if (Object.keys(settings.overrides).length === 0) {
       delete settings.overrides
     } else if (manifest) {
-      settings.overrides = mapValues(createVersionReferencesReplacer(manifest), settings.overrides!)
+      settings.overrides = mapValues(createVersionReferencesReplacer(manifest), settings.overrides)
     }
-  } else if (settings.overrides != null && Object.keys(settings.overrides).length === 0) {
-    delete settings.overrides
+  }
+  if (hasResolutions) {
+    settings.resolutionsStatus = {
+      ignoredResolutions: hasOverrides,
+      usedResolutions: !hasOverrides,
+    }
   }
   if (pnpmSettings.patchedDependencies) {
     settings.patchedDependencies = { ...pnpmSettings.patchedDependencies }
