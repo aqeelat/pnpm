@@ -98,7 +98,7 @@ impl State {
             _ => None,
         };
         let root_manifest_value = root_manifest.as_ref().unwrap_or_else(|| manifest.value());
-        apply_resolutions_to_config(config, root_manifest_value, manifest.value())?;
+        apply_resolutions_to_config(config, root_manifest_value)?;
         Ok(State {
             config: config as &Config,
             manifest,
@@ -147,7 +147,6 @@ where
 fn apply_resolutions_to_config(
     config: &mut Config,
     root_manifest: &serde_json::Value,
-    project_manifest: &serde_json::Value,
 ) -> Result<(), InitStateError> {
     let resolutions_raw = match root_manifest.get("resolutions") {
         None | Some(serde_json::Value::Null) => return Ok(()),
@@ -170,13 +169,13 @@ fn apply_resolutions_to_config(
             });
         }
     }
-    let has_overrides = config.overrides.as_ref().is_some_and(|o| !o.is_empty());
+    let has_overrides = config.overrides.as_ref().is_some_and(|overrides| !overrides.is_empty());
     if has_overrides {
         if config.ignore_resolutions_conflict {
             eprintln!(
                 " WARN  The \"resolutions\" field in package.json is ignored because \
                  \"overrides\" in pnpm-workspace.yaml takes precedence. Remove \
-                 \"resolutions\" from package.json."
+                 \"resolutions\" from package.json.",
             );
         } else {
             return Err(InitStateError::ResolutionsConflictWithOverrides);
@@ -184,14 +183,13 @@ fn apply_resolutions_to_config(
     } else {
         eprintln!(
             " WARN  The \"resolutions\" field in package.json is deprecated. Use \
-             the \"overrides\" field in pnpm-workspace.yaml instead."
+             the \"overrides\" field in pnpm-workspace.yaml instead.",
         );
         let overrides: IndexMap<String, String> = resolutions
             .into_iter()
             .map(|(k, v)| {
                 let spec = v.as_str().unwrap();
-                resolve_version_reference(spec, project_manifest)
-                    .map(|resolved| (k.clone(), resolved))
+                resolve_version_reference(spec, root_manifest).map(|resolved| (k.clone(), resolved))
             })
             .collect::<Result<_, _>>()?;
         if !overrides.is_empty() {

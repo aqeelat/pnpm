@@ -15,7 +15,7 @@ fn make_manifest(contents: &serde_json::Value) -> (TempDir, PackageManifest) {
 }
 
 fn apply(config: &mut Config, manifest: &PackageManifest) -> Result<(), InitStateError> {
-    apply_resolutions_to_config(config, manifest.value(), manifest.value())
+    apply_resolutions_to_config(config, manifest.value())
 }
 
 #[test]
