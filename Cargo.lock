@@ -2129,6 +2129,7 @@ dependencies = [
  "derive_more",
  "dunce",
  "home",
+ "indexmap",
  "insta",
  "miette 7.6.0",
  "pacquet-config",

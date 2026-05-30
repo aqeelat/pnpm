@@ -173,19 +173,22 @@ impl CliArgs {
         // pnpm's CLI: `--frozen-lockfile` is the strongest signal and
         // must not be silently dropped because `lockfile=false` was set
         // (or defaulted) in config.
-        let state = |require_lockfile: bool| -> miette::Result<State> {
-            State::init(manifest_path(), config()?, require_lockfile)
-                .wrap_err("initialize the state")
-        };
 
         match command {
             CliCommand::Init => {
                 PackageManifest::init(&manifest_path()).wrap_err("initialize package.json")?;
             }
-            CliCommand::Add(args) => match reporter {
-                ReporterType::Ndjson => args.run::<NdjsonReporter>(state(false)?).await?,
-                ReporterType::Silent => args.run::<SilentReporter>(state(false)?).await?,
-            },
+            CliCommand::Add(args) => {
+                let cfg = config()?;
+                cfg.ignore_resolutions_conflict =
+                    cfg.ignore_resolutions_conflict || args.ignore_resolutions_conflict;
+                let state =
+                    State::init(manifest_path(), cfg, false).wrap_err("initialize the state")?;
+                match reporter {
+                    ReporterType::Ndjson => args.run::<NdjsonReporter>(state).await?,
+                    ReporterType::Silent => args.run::<SilentReporter>(state).await?,
+                }
+            }
             CliCommand::Install(args) => {
                 // CLI overrides for `offline` / `prefer_offline` live
                 // alongside `--frozen-lockfile`: they upgrade an
@@ -214,6 +217,8 @@ impl CliArgs {
                 if let Some(user_agent) = args.user_agent.clone() {
                     cfg.user_agent = user_agent;
                 }
+                cfg.ignore_resolutions_conflict =
+                    cfg.ignore_resolutions_conflict || args.ignore_resolutions_conflict;
                 let require_lockfile = args.frozen_lockfile;
                 let state = State::init(manifest_path(), cfg, require_lockfile)
                     .wrap_err("initialize the state")?;

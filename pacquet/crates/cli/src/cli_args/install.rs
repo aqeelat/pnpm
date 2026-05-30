@@ -122,6 +122,13 @@ pub struct InstallArgs {
     #[clap(long)]
     pub ignore_manifest_check: bool,
 
+    /// Allow install when both `resolutions` in package.json and
+    /// `overrides` in pnpm-workspace.yaml exist. Overrides take
+    /// precedence; resolutions are ignored. Mirrors upstream pnpm's
+    /// `--ignore-resolutions-conflict`.
+    #[clap(long = "ignore-resolutions-conflict")]
+    pub ignore_resolutions_conflict: bool,
+
     /// Skip the install of any runtime dependencies
     /// (`node@runtime:`, `deno@runtime:`, `bun@runtime:`).
     /// Their archives aren't fetched, their slots aren't
@@ -247,6 +254,7 @@ impl InstallArgs {
             network_concurrency: _,
             fetch_timeout: _,
             user_agent: _,
+            ignore_resolutions_conflict: _,
         } = self;
 
         // `--prefer-frozen-lockfile` / `--no-prefer-frozen-lockfile`

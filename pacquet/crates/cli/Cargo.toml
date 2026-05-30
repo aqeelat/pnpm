@@ -32,9 +32,11 @@ clap        = { workspace = true }
 derive_more = { workspace = true }
 dunce       = { workspace = true }
 home        = { workspace = true }
+indexmap    = { workspace = true }
 miette      = { workspace = true }
 pipe-trait  = { workspace = true }
 rayon       = { workspace = true }
+serde_json  = { workspace = true }
 tokio       = { workspace = true }
 
 [dev-dependencies]
