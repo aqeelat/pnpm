@@ -95,10 +95,11 @@ impl State {
                 pacquet_package_manifest::safe_read_package_json_from_dir(path.parent().unwrap())
                     .map_err(InitStateError::Manifest)?
             }
-            _ => None,
+            _ => Some(manifest.value().clone()),
         };
-        let root_manifest_value = root_manifest.as_ref().unwrap_or_else(|| manifest.value());
-        apply_resolutions_to_config(config, root_manifest_value)?;
+        if let Some(root_value) = root_manifest {
+            apply_resolutions_to_config(config, &root_value)?;
+        }
         Ok(State {
             config: config as &Config,
             manifest,

@@ -96,6 +96,7 @@ test('getOptionsFromPnpmSettings() rejects non-object resolutions values', () =>
 })
 
 test('getOptionsFromPnpmSettings() replaces env variables in resolutions values', () => {
+  const prev = process.env.PNPM_TEST_VERSION
   process.env.PNPM_TEST_VERSION = '1.0.0'
   const options = getOptionsFromPnpmSettings(process.cwd(), {}, {
     resolutions: {
@@ -105,6 +106,11 @@ test('getOptionsFromPnpmSettings() replaces env variables in resolutions values'
   expect(options.overrides).toStrictEqual({
     foo: '1.0.0',
   })
+  if (prev !== undefined) {
+    process.env.PNPM_TEST_VERSION = prev
+  } else {
+    delete process.env.PNPM_TEST_VERSION
+  }
 })
 
 test('getOptionsFromPnpmSettings() ignores manifest resolutions when workspace overrides exist', () => {

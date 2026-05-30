@@ -575,6 +575,7 @@ impl WorkspaceSettings {
         self.supported_architectures = None;
         self.ignored_optional_dependencies = None;
         self.overrides = None;
+        self.ignore_resolutions_conflict = None;
         self.package_extensions = None;
     }
 
