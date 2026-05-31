@@ -1,6 +1,7 @@
 use crate::{
-    PackageSelector, ParseOverridesError, VersionOverride, create_overrides_map_from_parsed,
-    parse_overrides, parse_pkg_and_parent_selector,
+    ConversionResult, PackageSelector, ParseOverridesError, SkippedResolution, VersionOverride,
+    convert_resolutions_to_overrides, create_overrides_map_from_parsed, parse_overrides,
+    parse_pkg_and_parent_selector,
 };
 use pacquet_catalogs_types::{Catalog, Catalogs};
 use std::collections::HashMap;
@@ -205,4 +206,98 @@ fn create_overrides_map_returns_resolved_specifiers() {
     let map = create_overrides_map_from_parsed(&parsed);
     assert_eq!(map.get("foo").map(String::as_str), Some("^1.2.3"));
     assert_eq!(map.get("bar").map(String::as_str), Some("2.0.0"));
+}
+
+fn cr(overrides: Vec<(&str, &str)>, skipped: Vec<(&str, &str)>) -> ConversionResult {
+    ConversionResult {
+        overrides: overrides.into_iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+        skipped: skipped
+            .into_iter()
+            .map(|(sel, reason)| SkippedResolution {
+                selector: sel.to_string(),
+                reason: reason.to_string(),
+            })
+            .collect(),
+    }
+}
+
+#[test]
+fn resolutions_global_override_passthrough() {
+    let input =
+        vec![("foo".to_string(), "1.0.0".to_string()), ("bar".to_string(), "2.0.0".to_string())];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result, cr(vec![("foo", "1.0.0"), ("bar", "2.0.0")], vec![]));
+}
+
+#[test]
+fn resolutions_parent_child_slash_to_gt() {
+    let input = vec![("parent/child".to_string(), "1.0.0".to_string())];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result, cr(vec![("parent>child", "1.0.0")], vec![]));
+}
+
+#[test]
+fn resolutions_scoped_global_override() {
+    let input = vec![("@babel/core".to_string(), "7.0.0".to_string())];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result, cr(vec![("@babel/core", "7.0.0")], vec![]));
+}
+
+#[test]
+fn resolutions_scoped_parent_with_child() {
+    let input = vec![("@scope/pkg/child".to_string(), "1.0.0".to_string())];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result, cr(vec![("@scope/pkg>child", "1.0.0")], vec![]));
+}
+
+#[test]
+fn resolutions_non_scoped_parent_with_scoped_child() {
+    let input = vec![("parent/@scope/child".to_string(), "1.0.0".to_string())];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result, cr(vec![("parent>@scope/child", "1.0.0")], vec![]));
+}
+
+#[test]
+fn resolutions_skips_glob_patterns() {
+    let input = vec![("**/foo".to_string(), "1.0.0".to_string())];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result.overrides, vec![]);
+    assert_eq!(result.skipped.len(), 1);
+    assert_eq!(result.skipped[0].selector, "**/foo");
+}
+
+#[test]
+fn resolutions_skips_berry_qualifiers() {
+    let input = vec![("pkg@npm:1.0.0".to_string(), "2.0.0".to_string())];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result.overrides, vec![]);
+    assert_eq!(result.skipped.len(), 1);
+    assert_eq!(result.skipped[0].selector, "pkg@npm:1.0.0");
+}
+
+#[test]
+fn resolutions_mixed_entries() {
+    let input = vec![
+        ("foo".to_string(), "1.0.0".to_string()),
+        ("parent/child".to_string(), "2.0.0".to_string()),
+        ("@scope/pkg/nested".to_string(), "3.0.0".to_string()),
+        ("**/globby".to_string(), "4.0.0".to_string()),
+        ("bar@npm:1".to_string(), "5.0.0".to_string()),
+    ];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result.overrides.len(), 3);
+    assert_eq!(result.skipped.len(), 2);
+}
+
+#[test]
+fn resolutions_empty_input() {
+    let result = convert_resolutions_to_overrides(&[]);
+    assert_eq!(result, cr(vec![], vec![]));
+}
+
+#[test]
+fn resolutions_deep_nesting_first_slash_only() {
+    let input = vec![("a/b/c".to_string(), "1.0.0".to_string())];
+    let result = convert_resolutions_to_overrides(&input);
+    assert_eq!(result, cr(vec![("a>b/c", "1.0.0")], vec![]));
 }

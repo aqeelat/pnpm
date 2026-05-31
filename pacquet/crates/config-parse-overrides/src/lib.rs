@@ -227,5 +227,96 @@ fn resolve_catalog_in_value(
     }
 }
 
+/// A resolution entry that could not be auto-converted.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SkippedResolution {
+    pub selector: String,
+    pub reason: String,
+}
+
+/// Result of converting Yarn `resolutions` to pnpm `overrides`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConversionResult {
+    pub overrides: Vec<(String, String)>,
+    pub skipped: Vec<SkippedResolution>,
+}
+
+/// Convert Yarn-style `resolutions` from `package.json` into pnpm-style
+/// `overrides` for `pnpm-workspace.yaml`. Common parent/child patterns
+/// are converted by replacing the first `/` separator with `>`, but
+/// only when it does not split a scoped package name (`@scope/pkg`).
+/// Glob patterns (`**`) and Yarn Berry qualifiers (`@pkg@npm:version`)
+/// are skipped with a reason.
+pub fn convert_resolutions_to_overrides(resolutions: &[(String, String)]) -> ConversionResult {
+    let mut overrides = Vec::new();
+    let mut skipped = Vec::new();
+
+    for (selector, spec) in resolutions {
+        if selector.contains("**") {
+            skipped.push(SkippedResolution {
+                selector: selector.clone(),
+                reason: "Yarn glob patterns (**) have no pnpm equivalent".to_string(),
+            });
+            continue;
+        }
+        if selector.contains("@npm:") || contains_berry_qualifier(selector) {
+            skipped.push(SkippedResolution {
+                selector: selector.clone(),
+                reason: "Yarn Berry package qualifiers (@pkg@npm:version) are not supported"
+                    .to_string(),
+            });
+            continue;
+        }
+
+        overrides.push((convert_selector(selector), spec.clone()));
+    }
+
+    ConversionResult { overrides, skipped }
+}
+
+fn contains_berry_qualifier(selector: &str) -> bool {
+    let bytes = selector.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'@' && i + 1 < bytes.len() && bytes[i + 1].is_ascii_alphanumeric() {
+            let start = i;
+            i += 1;
+            while i < bytes.len()
+                && (bytes[i].is_ascii_alphanumeric() || matches!(bytes[i], b'-' | b'_'))
+            {
+                i += 1;
+            }
+            if i < bytes.len() && bytes[i] == b'@' {
+                let _scope = &selector[start..i];
+                return true;
+            }
+        }
+        i += 1;
+    }
+    false
+}
+
+fn convert_selector(selector: &str) -> String {
+    if selector.starts_with('@') {
+        if let Some(slash1) = selector.find('/') {
+            let after_first_slash = &selector[slash1 + 1..];
+            if let Some(slash2) = after_first_slash.find('/') {
+                let scope_and_pkg = &selector[..slash1 + 1 + slash2];
+                let child = &after_first_slash[slash2 + 1..];
+                return format!("{}>{}", scope_and_pkg, child);
+            }
+        }
+        return selector.to_string();
+    }
+
+    if let Some(slash_pos) = selector.find('/') {
+        let parent = &selector[..slash_pos];
+        let child = &selector[slash_pos + 1..];
+        return format!("{}>{}", parent, child);
+    }
+
+    selector.to_string()
+}
+
 #[cfg(test)]
 mod tests;

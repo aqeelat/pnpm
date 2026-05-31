@@ -5287,6 +5287,9 @@ importers:
       '@pnpm/config.matcher':
         specifier: workspace:*
         version: link:../../config/matcher
+      '@pnpm/config.parse-overrides':
+        specifier: workspace:*
+        version: link:../../config/parse-overrides
       '@pnpm/config.pick-registry-for-package':
         specifier: workspace:*
         version: link:../../config/pick-registry-for-package

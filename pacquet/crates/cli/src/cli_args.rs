@@ -4,7 +4,7 @@ pub mod run;
 pub mod store;
 pub mod supported_architectures;
 
-use crate::{State, config_overrides::ConfigOverrides};
+use crate::{State, config_overrides::ConfigOverrides, migrate_resolutions};
 use add::AddArgs;
 use clap::{Parser, Subcommand, ValueEnum};
 use install::InstallArgs;
@@ -215,6 +215,17 @@ impl CliArgs {
                     cfg.user_agent = user_agent;
                 }
                 let require_lockfile = args.frozen_lockfile;
+                let manifest_for_migration = PackageManifest::from_path(manifest_path()).ok();
+                if let Some(ref m) = manifest_for_migration {
+                    let workspace_yaml_path = dir.join("pnpm-workspace.yaml");
+                    if let Some(outcome) = migrate_resolutions::maybe_migrate_resolutions(
+                        m,
+                        cfg.overrides.as_ref(),
+                        &workspace_yaml_path,
+                    ) {
+                        cfg.overrides = Some(outcome.converted);
+                    }
+                }
                 let state = State::init(manifest_path(), cfg, require_lockfile)
                     .wrap_err("initialize the state")?;
                 match reporter {

@@ -27,11 +27,13 @@ pacquet-registry               = { workspace = true }
 pacquet-reporter               = { workspace = true }
 pacquet-tarball                = { workspace = true }
 pacquet-diagnostics            = { workspace = true }
+pacquet-config-parse-overrides = { workspace = true }
 
 clap        = { workspace = true }
 derive_more = { workspace = true }
 dunce       = { workspace = true }
 home        = { workspace = true }
+indexmap    = { workspace = true }
 miette      = { workspace = true }
 pipe-trait  = { workspace = true }
 rayon       = { workspace = true }

@@ -1,5 +1,6 @@
 mod cli_args;
 mod config_overrides;
+mod migrate_resolutions;
 mod state;
 
 use clap::Parser;

@@ -40,6 +40,7 @@ import { updateWorkspaceManifest } from '@pnpm/workspace.workspace-manifest-writ
 import { getPinnedVersion } from './getPinnedVersion.js'
 import { getSaveType } from './getSaveType.js'
 import { handleIgnoredBuilds } from './handleIgnoredBuilds.js'
+import { maybeMigrateResolutions } from './migrateResolutions.js'
 import { setupPolicyHandlers } from './policyHandlers.js'
 import {
   type CommandFullName,
@@ -117,6 +118,7 @@ export type InstallDepsOptions = Pick<Config,
 | 'configDependencies'
 | 'packageExtensions'
 | 'updateConfig'
+| 'overrides'
 > & Pick<ConfigContext,
 | 'allProjects'
 | 'allProjectsGraph'
@@ -176,6 +178,18 @@ export async function installDeps (
   opts: InstallDepsOptions,
   params: string[]
 ): Promise<void> {
+  if (opts.rootProjectManifest && !opts.update && !opts.dedupe && params.length === 0) {
+    const migrated = await maybeMigrateResolutions({
+      rootProjectManifest: opts.rootProjectManifest,
+      rootProjectManifestDir: opts.rootProjectManifestDir,
+      workspaceDir: opts.workspaceDir,
+      overrides: opts.overrides,
+      save: opts.save,
+    })
+    if (migrated) {
+      opts.overrides = { ...opts.overrides, ...migrated }
+    }
+  }
   if (!opts.update && !opts.dedupe && params.length === 0 && opts.optimisticRepeatInstall) {
     const { upToDate } = await checkDepsStatus({
       ...opts,
