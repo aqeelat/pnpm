@@ -95,7 +95,8 @@ impl State {
                 pacquet_package_manifest::safe_read_package_json_from_dir(path.parent().unwrap())
                     .map_err(InitStateError::Manifest)?
             }
-            _ => Some(manifest.value().clone()),
+            Some(_) => Some(manifest.value().clone()),
+            None => None,
         };
         if let Some(root_value) = root_manifest {
             apply_resolutions_to_config(config, &root_value)?;
@@ -209,7 +210,7 @@ fn resolve_version_reference(
     }
     let dep_name = &spec[1..];
     let dep_version =
-        ["dependencies", "devDependencies", "optionalDependencies"].iter().find_map(|field| {
+        ["optionalDependencies", "dependencies", "devDependencies"].iter().find_map(|field| {
             manifest.get(*field).and_then(|v| v.get(dep_name)).and_then(|v| v.as_str())
         });
     match dep_version {

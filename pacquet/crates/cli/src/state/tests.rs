@@ -257,3 +257,48 @@ fn test_apply_resolutions_to_config_version_reference_unresolvable() {
         other => panic!("expected CannotResolveOverrideVersion, got {other:?}"),
     }
 }
+
+#[test]
+fn test_apply_resolutions_to_config_version_reference_optional_deps_win() {
+    let (_dir, manifest) = make_manifest(&json!({
+        "name": "test",
+        "version": "1.0.0",
+        "devDependencies": {
+            "bar": "^1.0.0",
+        },
+        "dependencies": {
+            "bar": "^2.0.0",
+        },
+        "optionalDependencies": {
+            "bar": "^3.0.0",
+        },
+        "resolutions": {
+            "foo": "$bar",
+        },
+    }));
+    let mut config = Config::new();
+    apply(&mut config, &manifest).unwrap();
+    let overrides = config.overrides.unwrap();
+    assert_eq!(overrides.get("foo").unwrap(), "^3.0.0");
+}
+
+#[test]
+fn test_apply_resolutions_to_config_version_reference_deps_win_over_dev() {
+    let (_dir, manifest) = make_manifest(&json!({
+        "name": "test",
+        "version": "1.0.0",
+        "devDependencies": {
+            "bar": "^1.0.0",
+        },
+        "dependencies": {
+            "bar": "^2.0.0",
+        },
+        "resolutions": {
+            "foo": "$bar",
+        },
+    }));
+    let mut config = Config::new();
+    apply(&mut config, &manifest).unwrap();
+    let overrides = config.overrides.unwrap();
+    assert_eq!(overrides.get("foo").unwrap(), "^2.0.0");
+}
