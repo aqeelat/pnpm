@@ -6,7 +6,7 @@ import { prepare, preparePackages } from '@pnpm/prepare'
 import { readYamlFileSync } from 'read-yaml-file'
 import { writeYamlFileSync } from 'write-yaml-file'
 
-import { execPnpm, execPnpmSync } from './utils/index.js'
+import { execPnpmSync } from './utils/index.js'
 
 test('read settings from pnpm-workspace.yaml', async () => {
   prepare()
@@ -36,7 +36,9 @@ test('resolutions in root package.json are used as overrides when no overrides i
 
   writeYamlFileSync('pnpm-workspace.yaml', { packages: ['**', '!store/**'] })
 
-  await execPnpm(['install'])
+  const result = execPnpmSync(['install'])
+  expect(result.status).toBe(0)
+  expect(result.stderr.toString()).toContain('The "resolutions" field in package.json is deprecated')
 
   const lockfile = readYamlFileSync(WANTED_LOCKFILE) as any // eslint-disable-line
   expect(lockfile.overrides).toStrictEqual({
