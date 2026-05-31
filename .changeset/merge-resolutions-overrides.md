@@ -3,4 +3,4 @@
 "pnpm": minor
 ---
 
-Fix handling of `resolutions` in root `package.json` when `overrides` is set in `pnpm-workspace.yaml`. When both exist, pnpm now errors by default. Pass `--ignore-resolutions-conflict` or set `ignoreResolutionsConflict: true` in `pnpm-workspace.yaml` to suppress the error and use `overrides` only. When only `resolutions` exists, it is used as `overrides` with a deprecation warning.
+Fix handling of `resolutions` in root `package.json` when `overrides` is set in `pnpm-workspace.yaml`. When both exist, pnpm throws `ERR_PNPM_RESOLUTIONS_CONFLICT_WITH_OVERRIDES` by default. Pass `--ignore-resolutions-conflict` to suppress the error and use `overrides` only. When only `resolutions` exists, it is promoted to `overrides` with a deprecation warning, encouraging migration to the `pnpm-workspace.yaml` `overrides` field.
