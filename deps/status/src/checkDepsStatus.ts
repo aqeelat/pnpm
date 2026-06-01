@@ -169,13 +169,14 @@ async function _checkDepsStatus (opts: CheckDepsStatusOptions, workspaceState: W
     }
   }
 
-  const conflictedLockfileDir = findConflictedLockfileDir(getWantedLockfileDirs({
+  const lockfileDirs = getWantedLockfileDirs({
     allProjects,
     lockfileDir,
     rootProjectManifestDir,
     sharedWorkspaceLockfile,
     workspaceDir,
-  }), workspaceState.lastValidatedTimestamp)
+  })
+  const conflictedLockfileDir = findConflictedLockfileDir(lockfileDirs, workspaceState.lastValidatedTimestamp)
   if (conflictedLockfileDir != null) {
     return {
       upToDate: false,
@@ -264,13 +265,6 @@ async function _checkDepsStatus (opts: CheckDepsStatusOptions, workspaceState: W
       ({ manifestStats }) =>
         manifestStats.mtime.valueOf() > workspaceState.lastValidatedTimestamp
     )
-    const lockfileDirs = getWantedLockfileDirs({
-      allProjects,
-      lockfileDir,
-      rootProjectManifestDir,
-      sharedWorkspaceLockfile,
-      workspaceDir,
-    })
     const lockfilesModified = lockfileDirs.some((wantedLockfileDir) => {
       const wantedLockfileStats = safeStatSync(path.join(wantedLockfileDir, WANTED_LOCKFILE))
       return wantedLockfileStats == null || wantedLockfileStats.mtime.valueOf() > workspaceState.lastValidatedTimestamp
