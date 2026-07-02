@@ -125,6 +125,10 @@ test('pnpm install with overrides uses pnpr server and emits unused-override war
       proc.kill()
       reject(new Error('pnpm install timed out'))
     }, 60_000)
+    proc.on('error', (err) => {
+      clearTimeout(timeoutId)
+      reject(err)
+    })
     proc.on('close', (code) => {
       clearTimeout(timeoutId)
       const result = Buffer.concat(chunks).toString()

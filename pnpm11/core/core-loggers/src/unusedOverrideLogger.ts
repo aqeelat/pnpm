@@ -4,11 +4,11 @@ import {
   logger,
 } from '@pnpm/logger'
 
-export const unusedOverrideLogger = logger('unusedOverride') as Logger<UnusedOverrideMessage>
+export const unusedOverrideLogger = logger('unused-override') as Logger<UnusedOverrideMessage>
 
 export interface UnusedOverrideMessage {
   prefix: string
   selector: string
 }
 
-export type UnusedOverrideLog = { name: 'pnpm:unusedOverride' } & LogBase & UnusedOverrideMessage
+export type UnusedOverrideLog = { name: 'pnpm:unused-override' } & LogBase & UnusedOverrideMessage

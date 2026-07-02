@@ -1199,12 +1199,12 @@ impl<DependencyGroupList> InstallWithFreshLockfile<'_, DependencyGroupList> {
             "phase complete",
         );
 
-        // Emit one `pnpm:unusedOverride` event per override selector that
+        // Emit one `pnpm:unused-override` event per override selector that
         // matched no resolved package, then close the resolution phase with
         // `pnpm:stage { stage: "resolution_done" }`. The reporter buffers
         // unused-override events against `resolution_done` and renders a
         // single grouped warning, so ordering matters — every
-        // `pnpm:unusedOverride` for this install must precede the
+        // `pnpm:unused-override` for this install must precede the
         // `resolution_done` emission.
         //
         // Gate: only run the diff when the resolver was forced to do full

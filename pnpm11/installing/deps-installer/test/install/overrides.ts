@@ -123,7 +123,7 @@ test('when adding a new dependency that is present in the overrides, use the spe
 
   expect(manifest.dependencies?.['@pnpm.e2e/bar']).toBe(overrides['@pnpm.e2e/bar'])
   const calls = reporter.mock.calls.map(([log]) => log as { name?: string })
-  expect(calls.some((log) => log?.name === 'pnpm:unusedOverride')).toBe(false)
+  expect(calls.some((log) => log?.name === 'pnpm:unused-override')).toBe(false)
 })
 
 test('explicitly specifying a version at install will ignore overrides', async () => {
@@ -298,7 +298,7 @@ test('overrides remove dependencies', async () => {
   expect(lockfile.overrides).toStrictEqual(currentLockfile.overrides)
 })
 
-test('emits a pnpm:unusedOverride log for overrides that matched no dependency', async () => {
+test('emits a pnpm:unused-override log for overrides that matched no dependency', async () => {
   prepareEmpty()
   const reporter = jest.fn()
 
@@ -314,14 +314,14 @@ test('emits a pnpm:unusedOverride log for overrides that matched no dependency',
   }))
 
   const calls = reporter.mock.calls.map(([log]) => log as { name?: string, selector?: string })
-  const unused = calls.filter((log) => log?.name === 'pnpm:unusedOverride')
+  const unused = calls.filter((log) => log?.name === 'pnpm:unused-override')
   expect(unused.map((log) => log.selector).sort()).toEqual([
     '@pnpm.e2e/does-not-exist>@pnpm.e2e/bar',
     'this-overrides-key-matches-nothing',
   ])
 })
 
-test('does not emit pnpm:unusedOverride when the override matched', async () => {
+test('does not emit pnpm:unused-override when the override matched', async () => {
   const project = prepareEmpty()
   const reporter = jest.fn()
 
@@ -340,5 +340,5 @@ test('does not emit pnpm:unusedOverride when the override matched', async () => 
   expect(lockfile.packages).toHaveProperty(['@pnpm.e2e/dep-of-pkg-with-1-dep@101.0.0'])
 
   const calls = reporter.mock.calls.map(([log]) => log as { name?: string })
-  expect(calls.some((log) => log?.name === 'pnpm:unusedOverride')).toBe(false)
+  expect(calls.some((log) => log?.name === 'pnpm:unused-override')).toBe(false)
 })

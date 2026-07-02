@@ -5,14 +5,15 @@ import { buffer, filter, map } from 'rxjs/operators'
 import { formatWarn } from './utils/formatWarn.js'
 
 /**
- * Strip ASCII control characters (C0 range 0x00–0x1F and DEL 0x7F)
- * from a selector so a crafted override key containing `\n`, `\r`, or
- * ESC cannot inject/spoof terminal output. The raw selector stays
- * intact in the structured log event for machine consumers.
+ * Strip ASCII control characters (C0 range 0x00–0x1F, DEL 0x7F, and
+ * C1 range 0x80–0x9F) from a selector so a crafted override key
+ * containing `\n`, `\r`, ESC, or CSI cannot inject/spoof terminal
+ * output. The raw selector stays intact in the structured log event
+ * for machine consumers.
  */
 function sanitizeSelector (selector: string): string {
   // eslint-disable-next-line no-control-regex
-  return selector.replace(/[\x00-\x1F\x7F]/g, '')
+  return selector.replace(/[\x00-\x1F\x7F-\x9F]/g, '')
 }
 
 export function reportUnusedOverrides (

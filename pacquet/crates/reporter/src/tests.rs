@@ -695,7 +695,7 @@ fn skipped_optional_dependency_event_matches_pnpm_wire_shape() {
     assert_eq!(json["package"]["version"], "1.0.0");
 }
 
-/// `pnpm:unusedOverride` matches upstream's wire shape: `prefix` and
+/// `pnpm:unused-override` matches upstream's wire shape: `prefix` and
 /// `selector` at the top level alongside the bunyan-envelope `level`.
 /// Mirrors `UnusedOverrideMessage` at
 /// <https://github.com/pnpm/pnpm/blob/3b12eb27de/core/core-loggers/src/unusedOverrideLogger.ts>.
@@ -712,7 +712,7 @@ fn unused_override_event_matches_pnpm_wire_shape() {
         .expect("serialize envelope")
         .pipe_as_ref(serde_json::from_str)
         .expect("parse JSON");
-    assert_eq!(json["name"], "pnpm:unusedOverride");
+    assert_eq!(json["name"], "pnpm:unused-override");
     assert_eq!(json["level"], "debug");
     assert_eq!(json["prefix"], "/projects/x");
     assert_eq!(json["selector"], "foo>bar");

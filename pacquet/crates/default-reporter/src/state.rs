@@ -229,7 +229,7 @@ pub struct ReporterState {
     warnings_counter: usize,
     collapsed_warn_slot: BlockSlot,
 
-    /// `pnpm:unusedOverride` selectors buffered until
+    /// `pnpm:unused-override` selectors buffered until
     /// `pnpm:stage { stage: "resolution_done" }`, mirroring pnpm's
     /// `reportDeprecations.ts` `buffer(resolutionDone$)` shape. When
     /// the stage fires, the buffered selectors are concatenated into

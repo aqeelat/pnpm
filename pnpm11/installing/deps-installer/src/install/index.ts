@@ -2639,6 +2639,10 @@ export function findAppliedOverrideSelectorsFromLockfile (
 ): Set<string> {
   const applied = new Set<string>()
 
+  const packageEntries = Object.entries(lockfile.packages ?? {}) as Array<[DepPath, PackageSnapshot]>
+  const packageSnapshots = packageEntries.map(([, snapshot]) => snapshot)
+  const importerSnapshots = Object.values(lockfile.importers)
+
   for (const override of parsedOverrides) {
     const targetName = override.targetPkg.name
 
@@ -2671,7 +2675,7 @@ export function findAppliedOverrideSelectorsFromLockfile (
       if (applied.has(override.selector)) continue
 
       // Check resolved packages as potential parent matches.
-      for (const [depPath, snapshot] of Object.entries(lockfile.packages ?? {}) as Array<[DepPath, PackageSnapshot]>) {
+      for (const [depPath, snapshot] of packageEntries) {
         const { name, version } = nameVerFromPkgSnapshot(depPath, snapshot)
         if (name !== parentName) continue
         if (parentRange != null && (version == null || !parentRangeValid || !semver.satisfies(version, parentRange))) continue
@@ -2685,7 +2689,7 @@ export function findAppliedOverrideSelectorsFromLockfile (
         }
       }
     } else {
-      for (const importer of Object.values(lockfile.importers)) {
+      for (const importer of importerSnapshots) {
         if (
           depEntryMatches(importer.dependencies, targetName) ||
           depEntryMatches(importer.devDependencies, targetName) ||
@@ -2696,7 +2700,7 @@ export function findAppliedOverrideSelectorsFromLockfile (
         }
       }
       if (applied.has(override.selector)) continue
-      for (const snapshot of Object.values(lockfile.packages ?? {})) {
+      for (const snapshot of packageSnapshots) {
         if (
           depEntryMatches(snapshot.dependencies, targetName) ||
           depEntryMatches(snapshot.optionalDependencies, targetName) ||

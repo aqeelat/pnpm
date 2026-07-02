@@ -73,7 +73,7 @@ test('uses singular form for a single unused override', async () => {
 })
 
 test('does not print anything when no unused-override events were emitted', async () => {
-  // A reporter-only contract: with no `pnpm:unusedOverride` events on
+  // A reporter-only contract: with no `pnpm:unused-override` events on
   // the stream, `resolution_done` must produce no warning frame. Whether
   // the underlying matcher ran and found everything used is an
   // install-layer concern covered by the integration test in

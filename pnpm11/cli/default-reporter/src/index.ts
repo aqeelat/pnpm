@@ -242,7 +242,7 @@ export function toOutput$ (
         case 'pnpm:update-check':
           updateCheckPushStream.next(log)
           break
-        case 'pnpm:unusedOverride':
+        case 'pnpm:unused-override':
           unusedOverridePushStream.next(log)
           break
       case 'pnpm' as any: // eslint-disable-line
