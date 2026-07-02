@@ -154,3 +154,31 @@ test('parent-scoped override with non-semver parent range does not crash', () =>
   // 'latest' is not a valid semver range → no parent matches → unused.
   expect(applied.has('parent@latest>foo')).toBe(false)
 })
+
+test('parent-scoped override matches when target is a workspace project peer dependency', () => {
+  // Lockfile importer snapshots don't carry peerDependencies, so the
+  // scan must check the project manifest's peerDependencies directly.
+  const lockfile = {
+    lockfileVersion: '6.0',
+    importers: {
+      '.': {
+        specifiers: {},
+        dependencies: {},
+      },
+    },
+  } as unknown as LockfileObject
+
+  const projectManifests: Array<{ importerId: string, manifest: ProjectManifest }> = [
+    { importerId: '.', manifest: { name: 'my-app', version: '1.0.0', peerDependencies: { foo: '^1.0.0' } } },
+  ]
+
+  const applied = findAppliedOverrideSelectorsFromLockfile(lockfile, [
+    {
+      selector: 'my-app>foo',
+      parentPkg: { name: 'my-app' },
+      targetPkg: { name: 'foo' },
+    },
+  ], projectManifests)
+
+  expect(applied.has('my-app>foo')).toBe(true)
+})

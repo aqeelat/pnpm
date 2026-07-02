@@ -48,13 +48,19 @@ export function findAppliedOverrideSelectorsFromLockfile (
           if (projectVersion == null) continue
           if (!parentRangeValid || !semver.satisfies(projectVersion, parentRange)) continue
         }
+        // Importer snapshots don't carry peerDependencies, so check the
+        // manifest directly for that field. The other three groups are
+        // covered by the importer entry (resolved deps share the same
+        // names as the manifest).
         const importer = lockfile.importers[importerId as ProjectId]
-        if (importer == null) continue
-        if (
-          depEntryMatches(importer.dependencies, targetName) ||
-          depEntryMatches(importer.devDependencies, targetName) ||
-          depEntryMatches(importer.optionalDependencies, targetName)
-        ) {
+        const matched =
+          (importer != null && (
+            depEntryMatches(importer.dependencies, targetName) ||
+            depEntryMatches(importer.devDependencies, targetName) ||
+            depEntryMatches(importer.optionalDependencies, targetName)
+          )) ||
+          depEntryMatches(projectManifest.peerDependencies, targetName)
+        if (matched) {
           applied.add(override.selector)
           break
         }
