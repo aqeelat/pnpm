@@ -829,3 +829,24 @@ test('createVersionsOverrider() onApplied fires per matching (manifest × dep gr
   // First manifest fires twice (dep + peer); the next two fire once each.
   expect(applied).toEqual(['foo', 'foo', 'foo', 'foo'])
 })
+
+test('createVersionsOverrider() ignores parent-scoped override with non-semver parent range', () => {
+  // bareSpecifier can be non-semver (e.g. 'latest'); validRange guard
+  // prevents semver.satisfies from receiving an invalid range. The
+  // override is treated as non-matching.
+  const overrider = createVersionsOverrider([
+    {
+      parentPkg: { name: 'parent', bareSpecifier: 'latest' },
+      targetPkg: { name: 'foo' },
+      newBareSpecifier: '2.0.0',
+    },
+  ], process.cwd())
+  // The overrider is synchronous — cast to access .dependencies directly.
+  const result = overrider({
+    name: 'parent',
+    version: '1.0.0',
+    dependencies: { foo: '^1.0.0' },
+  }) as { dependencies: Record<string, string> }
+  // Override does not apply because 'latest' is not a valid semver range.
+  expect(result.dependencies.foo).toBe('^1.0.0')
+})

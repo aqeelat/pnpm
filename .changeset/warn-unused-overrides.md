@@ -12,7 +12,7 @@ The warning is buffered until the `resolution_done` stage and rendered as a sing
 
 Internal/public API additions that support the feature:
 
-- `@pnpm/core-loggers` — new `pnpm:unusedOverride` channel (`unusedOverrideLogger`, `UnusedOverrideLog`, `UnusedOverrideMessage`).
+- `@pnpm/core-loggers` — new `pnpm:unused-override` channel (`unusedOverrideLogger`, `UnusedOverrideLog`, `UnusedOverrideMessage`).
 - `@pnpm/hooks.read-package-hook` — `createVersionsOverrider` accepts an optional `onApplied` callback that fires per matched override; `createReadPackageHook` threads it as `onOverrideApplied`. The exported `VersionOverrideWithoutRawSelector` alias is kept for backward compatibility.
 - `@pnpm/installing.deps-installer` — `ProcessedInstallOptions` exposes an `appliedOverrides: Set<string>` so callers can read which override selectors matched after resolution.
 - `@pnpm/cli.default-reporter` — new `reportUnusedOverrides` reporter wired into the client reporter pipeline.

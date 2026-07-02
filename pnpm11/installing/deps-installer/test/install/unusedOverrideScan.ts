@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals'
 import type { LockfileObject } from '@pnpm/lockfile.fs'
 import type { ProjectManifest } from '@pnpm/types'
 
-import { findAppliedOverrideSelectorsFromLockfile } from '../../src/install/index.js'
+import { findAppliedOverrideSelectorsFromLockfile } from '../../src/install/findAppliedOverrides.js'
 
 test('version-scoped override that changed the version is not flagged as unused', () => {
   // Override foo@^1: 2.0.0 forces foo from 1.x to 2.0.0.

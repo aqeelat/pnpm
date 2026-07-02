@@ -35,7 +35,10 @@ export function createVersionsOverrider (
     const versionOverridesWithParent = versionOverrides.filter(({ parentPkg }) => {
       return (
         parentPkg.name === manifest.name &&
-        (!parentPkg.bareSpecifier || semver.satisfies(manifest.version, parentPkg.bareSpecifier))
+        (!parentPkg.bareSpecifier ||
+          (manifest.version != null &&
+            semver.validRange(parentPkg.bareSpecifier) != null &&
+            semver.satisfies(manifest.version, parentPkg.bareSpecifier)))
       )
     })
     overrideDepsOfPkg(
